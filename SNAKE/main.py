@@ -9,9 +9,19 @@ finish = False
 total_reward = {1: 0, 2: 0, 3: 0, 4: 0}
 
 while not finish:
-    env.render(mode='raw')
+    env.render(mode='human')
     actions = []
-    for i in range(1, 5):
+    user_input = input('Enter action for player 1: ')
+    if user_input == 'w':
+        actions.append(1)
+    elif user_input == 's':
+        actions.append(2)
+    elif user_input == 'a':
+        actions.append(3)
+    elif user_input == 'd':
+        actions.append(4)
+
+    for i in range(2, 5):
         actions.append(random.randint(1, 4))
     state, reward, done, _ = env.step(actions)
     for i in range(1, 5):

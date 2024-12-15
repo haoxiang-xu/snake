@@ -87,6 +87,7 @@ class SnakeEnv(gym.Env):
                 if action not in self.actions:
                     raise ValueError('invalid action.')
         def update_player_positions(player):
+            not_allowed_direction = self.player_positions[player][1]
             if actions[player-1] == 1:
                 next_position  = [self.player_positions[player][0][0] - 1, self.player_positions[player][0][1]]
             elif actions[player-1] == 2:
@@ -95,6 +96,15 @@ class SnakeEnv(gym.Env):
                 next_position  = [self.player_positions[player][0][0], self.player_positions[player][0][1] - 1]
             elif actions[player-1] == 4:
                 next_position  = [self.player_positions[player][0][0], self.player_positions[player][0][1] + 1]
+            
+            # self collision check
+            if next_position[0] == not_allowed_direction[0] and next_position[1] == not_allowed_direction[1]:
+                rewards[player] = self.grid_size[0] * self.grid_size[1] * -1
+                self.done[player] = True
+                for position in self.player_positions[player]:
+                    if position[0] >= 0 and position[0] < self.grid_size[0] and position[1] >= 0 and position[1] < self.grid_size[1]:
+                        self.state[position[0], position[1]] = 0
+                return 0
             
             self.player_positions[player].insert(0, next_position)
             if next_position[0] > 0 and next_position[0] < self.grid_size[0] and next_position[1] > 0 and next_position[1] < self.grid_size[1]:
