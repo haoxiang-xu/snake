@@ -9,7 +9,7 @@ finish = False
 total_reward = {1: 0, 2: 0, 3: 0, 4: 0}
 
 while not finish:
-    env.render()
+    env.render(mode='raw')
     actions = []
     for i in range(1, 5):
         actions.append(random.randint(1, 4))

@@ -2,6 +2,8 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import random
+import os
+import time
 
 class SnakeEnv(gym.Env):
     metadata = {'render_modes': ['human'], 'render_fps': 30}
@@ -49,9 +51,9 @@ class SnakeEnv(gym.Env):
         grid = np.zeros(self.grid_size)
         self.player_positions = {
             1: [[2, 1], [1,1]], 
-            2: [[self.grid_size[0] - 1, 2], [self.grid_size[0] - 1, 1]], 
-            3: [[self.grid_size[0] - 2, self.grid_size[1] - 1], [self.grid_size[0] - 1, self.grid_size[1] - 1]], 
-            4: [[1, self.grid_size[1] - 2], [1, self.grid_size[1] - 1]]
+            2: [[self.grid_size[0] - 2, 2], [self.grid_size[0] - 2, 1]], 
+            3: [[self.grid_size[0] - 3, self.grid_size[1] - 2], [self.grid_size[0] - 2, self.grid_size[1] - 2]], 
+            4: [[1, self.grid_size[1] - 3], [1, self.grid_size[1] - 2]]
         }
 
         def generate_players():
@@ -164,8 +166,35 @@ class SnakeEnv(gym.Env):
         terminal_state_check()
         return rewards
                 
-    def render(self):
-        print(self.state)
+    def render(self, mode='raw'):
+        def render_raw_grid():
+            print(self.state)
+        def render_human_readable_grid():
+            symbols = {
+                0: ' ',
+                1: 'O',
+                2: '1',
+                3: '1',
+                4: '2',
+                5: '2',
+                6: '3',
+                7: '3',
+                8: '4',
+                9: '4'
+            }
+            os.system('cls' if os.name == 'nt' else 'clear')
+
+            for x in range(self.grid_size[0]):
+                for y in range(self.grid_size[1]):
+                    print(symbols.get(self.state[x, y], '?'), end=' ')
+                print()
+
+            time.sleep(0.5)
+        
+        if mode == 'raw':
+            render_raw_grid()
+        elif mode == 'human':
+            render_human_readable_grid()
     
     def close(self):
         pass
