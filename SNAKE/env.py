@@ -40,7 +40,14 @@ class SnakeEnv(gym.Env):
         self.observation_space = spaces.Box(low = 0, high = 9, shape = (self.grid_size[0], self.grid_size[1]), dtype = np.uint8)
         
         self.state = None
-        self.done = {1: False, 2: False, 3: False, 4: False}
+        if self.num_of_players == 1:
+            self.done = {1: False}
+        elif self.num_of_players == 2:
+            self.done = {1: False, 2: False}
+        elif self.num_of_players == 3:
+            self.done = {1: False, 2: False, 3: False}
+        elif self.num_of_players == 4:
+            self.done = {1: False, 2: False, 3: False, 4: False}
         
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -107,13 +114,13 @@ class SnakeEnv(gym.Env):
                 return 0
             
             self.player_positions[player].insert(0, next_position)
-            if next_position[0] > 0 and next_position[0] < self.grid_size[0] and next_position[1] > 0 and next_position[1] < self.grid_size[1]:
-                if self.state[next_position[0], next_position[1]] != self.candies_indicator:
-                    self.state[self.player_positions[player][-1][0], self.player_positions[player][-1][1]] = 0
-                    self.player_positions[player].pop() 
-                    return 0     
-                else:
+            if next_position[0] >= 0 and next_position[0] < self.grid_size[0] and next_position[1] >= 0 and next_position[1] < self.grid_size[1]:
+                if self.state[next_position[0], next_position[1]] == self.candies_indicator:
                     return 1
+                else:
+                    self.state[self.player_positions[player][-1][0], self.player_positions[player][-1][1]] = 0
+                    self.player_positions[player] = self.player_positions[player][:-1]
+                    return 0
             return 0
         def update_grid(player):
             next_position = self.player_positions[player][0]
@@ -141,6 +148,8 @@ class SnakeEnv(gym.Env):
                 self.state[next_position[0], next_position[1]] = self.indicators[player]['head']
                 self.state[pervious_head_position[0], pervious_head_position[1]] = self.indicators[player]['body']     
         def terminal_state_check():
+            if self.num_of_players == 1:
+                return 0
             terminated_players = 0
             for player in range(1, self.num_of_players+1):
                 if self.done[player]:
@@ -164,6 +173,9 @@ class SnakeEnv(gym.Env):
             if self.done[player]:
                 continue
             update_grid(player)
+            
+        print(self.player_positions[1])
+            
             
         if candies_to_generated > 0:
             while candies_to_generated > 0:
@@ -199,7 +211,7 @@ class SnakeEnv(gym.Env):
                     print(symbols.get(self.state[x, y], '?'), end=' ')
                 print()
 
-            time.sleep(0.5)
+            time.sleep(0.1)
         
         if mode == 'raw':
             render_raw_grid()

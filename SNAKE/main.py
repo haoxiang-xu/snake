@@ -2,7 +2,9 @@ import gymnasium as gym
 import random
 from env import SnakeEnv
 
-env = SnakeEnv()
+num_of_players = 1
+
+env = SnakeEnv(num_of_players = num_of_players)
 
 state = env.reset()
 finish = False
@@ -21,13 +23,16 @@ while not finish:
     elif user_input == 'd':
         actions.append(4)
 
-    for i in range(2, 5):
+    for i in range(2, num_of_players+1):
         actions.append(random.randint(1, 4))
     state, reward, done, _ = env.step(actions)
-    for i in range(1, 5):
+    for i in range(1, num_of_players+1):
         total_reward[i] += reward[i]
-    finish = done[1] and done[2] and done[3] and done[4]
-    
+        
+    finish = True    
+    for i in range(1, num_of_players+1):
+       finish = finish and done[i]
+        
 print('Total reward: ', total_reward)
     
 env.close()
