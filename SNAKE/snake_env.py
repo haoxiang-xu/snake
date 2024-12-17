@@ -4,6 +4,7 @@ import time
 import random
 import gymnasium as gym
 from gymnasium import spaces
+from IPython.display import clear_output
 
 class SnakeEnv(gym.Env):
     metadata = {'render_modes': ['human'], 'render_fps': 30}
@@ -29,7 +30,7 @@ class SnakeEnv(gym.Env):
         """rewards"""
         self.edge_collision_reward = 0
         self.self_collision_reward = 0
-        self.candy_collision_reward = 0
+        self.candy_collision_reward = (grid_size[0] * grid_size[1]) / 10
         self.turn_reward = 0.256
         self.candy_collision_detected = False
         
@@ -80,7 +81,6 @@ class SnakeEnv(gym.Env):
         def update_rewards():
             self.edge_collision_reward = len(self.snake_position) - (self.grid_size[0] * self.grid_size[1])
             self.self_collision_reward = len(self.snake_position) - (self.grid_size[0] * self.grid_size[1])
-            self.candy_collision_reward = 1
             if self.candy_collision_detected:
                 self.candy_collision_detected = False
                 self.turn_reward = 0.256
@@ -131,8 +131,17 @@ class SnakeEnv(gym.Env):
         return self.state, reward, self.done, False, {}
     
     def render(self, mode='training'):
+        def run_in_jupyter():
+            try:
+                from IPython import get_ipython
+                return get_ipython() is not None and 'IPKernelApp' in get_ipython().config
+            except ImportError:
+                return False
         if mode == 'human':
-            os.system('cls' if os.name == 'nt' else 'clear')
+            if run_in_jupyter():
+                clear_output(wait=True)
+            else:
+                os.system('cls' if os.name == 'nt' else 'clear')
             for i in range(self.grid_size[0]):
                 for j in range(self.grid_size[1]):
                     if self.state[i, j] == 0:
@@ -144,7 +153,10 @@ class SnakeEnv(gym.Env):
                 print()
             time.sleep(0.1)
         if mode == 'auto':
-            os.system('cls' if os.name == 'nt' else 'clear')
+            if run_in_jupyter():
+                clear_output(wait=True)
+            else:
+                os.system('cls' if os.name == 'nt' else 'clear')
             for i in range(self.grid_size[0]):
                 for j in range(self.grid_size[1]):
                     if self.state[i, j] == 0:
@@ -154,9 +166,12 @@ class SnakeEnv(gym.Env):
                     else:
                         print('S', end=' ')
                 print()
-            time.sleep(0.5)
+            time.sleep(0.32)
         elif mode == 'raw':
-            os.system('cls' if os.name == 'nt' else 'clear')
+            if run_in_jupyter():
+                clear_output(wait=True)
+            else:
+                os.system('cls' if os.name == 'nt' else 'clear')
             for i in range(self.grid_size[0]):
                 for j in range(self.grid_size[1]):
                     if self.state[i, j] == 0:
@@ -166,7 +181,7 @@ class SnakeEnv(gym.Env):
                     else:
                         print(self.state[i, j] % 10, end=' ')
                 print()
-            time.sleep(0.1)
+            time.sleep(0.16)
         else:
             print()
     

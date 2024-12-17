@@ -68,17 +68,3 @@ class Snake:
             raise ValueError("model or model_path must be provided.")
         model.learn(total_timesteps=epochs)
         return model
-            
-if __name__ == '__main__':
-    # snake = Snake()
-    # snake.run()
-    snake = Snake()
-    #model = DQN.load("snake_model", env = snake.env)
-    
-    model = DQN("MlpPolicy", snake.env, verbose=1, learning_rate=1e-4, buffer_size=10000)
-    
-    for i in range(1):
-        model = snake.training(model=model, epochs=100000)
-        snake.run(model = model)
-        
-    model.save("snake_model")
