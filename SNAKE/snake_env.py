@@ -39,7 +39,6 @@ class SnakeEnv(gym.Env):
         
         self.state = np.zeros(self.grid_size, dtype=np.int32)
         self.done = False
-
     def reset(self, seed=None, options=None):
         def initialize_grid():
             self.snake_position = [(self.grid_size[0]//2, self.grid_size[1]//2), (self.grid_size[0]//2 + 1, self.grid_size[1]//2), (self.grid_size[0]//2 + 2, self.grid_size[1]//2)]
@@ -65,7 +64,6 @@ class SnakeEnv(gym.Env):
         self.done = False
         
         return self.state, {}
-    
     def step(self, action):
         def initialize_candy():
             position_x = random.randint(0, self.grid_size[0] - 1)
@@ -129,7 +127,6 @@ class SnakeEnv(gym.Env):
         update_state()
         
         return self.state, reward, self.done, False, {}
-    
     def render(self, mode='training'):
         def run_in_jupyter():
             try:
@@ -184,6 +181,5 @@ class SnakeEnv(gym.Env):
             time.sleep(0.16)
         else:
             print()
-    
     def close(self):
         pass
