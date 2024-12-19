@@ -30,8 +30,8 @@ class SnakeEnv(gym.Env):
         """rewards"""
         self.edge_collision_reward = 0
         self.self_collision_reward = 0
-        self.candy_collision_reward = (grid_size[0] * grid_size[1]) / 10
-        self.turn_reward = 0.256
+        self.candy_collision_reward = 0
+        self.turn_reward = 0
         self.candy_collision_detected = False
         
         self.grid_size = grid_size
@@ -77,8 +77,8 @@ class SnakeEnv(gym.Env):
                 self.candy_position.append((position_x, position_y))
             self.state[position_x, position_y] = self.grid_size[0] * self.grid_size[1] + 1
         def update_rewards():
-            self.edge_collision_reward = len(self.snake_position) - (self.grid_size[0] * self.grid_size[1])
-            self.self_collision_reward = len(self.snake_position) - (self.grid_size[0] * self.grid_size[1])
+            self.edge_collision_reward = len(self.snake_position)
+            self.self_collision_reward = len(self.snake_position)
             if self.candy_collision_detected:
                 self.candy_collision_detected = False
                 self.turn_reward = 0.256
