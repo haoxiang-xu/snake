@@ -28,14 +28,15 @@ class SnakeEnv(gym.Env):
         self.candy_position = []
         
         """rewards"""
-        self.edge_collision_reward = 0
-        self.self_collision_reward = 0
-        self.candy_collision_reward = 0
-        self.turn_reward = 0
+        self.edge_collision_reward = -1
+        self.self_collision_reward = -1
+        self.candy_collision_reward = 1
+        self.no_candy_collision_turn_count = 0
+        self.turn_reward = 0.01
         self.candy_collision_detected = False
         
         self.grid_size = grid_size
-        self.observation_space = spaces.Box(low=0, high=grid_size[0] * grid_size[1] + 1, shape=(grid_size[0], grid_size[1]), dtype=np.int32)
+        self.observation_space = spaces.Box(low=0, high=3, shape=(grid_size[0], grid_size[1]), dtype=np.int32)
         
         self.state = np.zeros(self.grid_size, dtype=np.int32)
         self.done = False
@@ -77,13 +78,7 @@ class SnakeEnv(gym.Env):
                 self.candy_position.append((position_x, position_y))
             self.state[position_x, position_y] = self.grid_size[0] * self.grid_size[1] + 1
         def update_rewards():
-            self.edge_collision_reward = len(self.snake_position)
-            self.self_collision_reward = len(self.snake_position)
-            if self.candy_collision_detected:
-                self.candy_collision_detected = False
-                self.turn_reward = 0.256
-            else:
-                self.turn_reward = self.turn_reward / 2     
+            pass         
         def move_snake_position(action):
             if action == 0:
                 new_head_position = (self.snake_position[0][0] - 1, self.snake_position[0][1])
@@ -121,12 +116,31 @@ class SnakeEnv(gym.Env):
                 self.state[self.snake_position[i]] = i + 1
             for i in range(len(self.candy_position)):
                 self.state[self.candy_position[i]] = self.grid_size[0] * self.grid_size[1] + 1
+        def convert_state_to_observation():
+            converted_state = np.zeros(self.grid_size, dtype=np.int32)
+            for i in range(self.grid_size[0]):
+                for j in range(self.grid_size[1]):
+                    if self.state[i, j] == 0:
+                        converted_state[i, j] = 0
+                    elif self.state[i, j] == self.grid_size[0] * self.grid_size[1] + 1:
+                        converted_state[i, j] = 3
+                    elif self.state[i, j] == 1:
+                        converted_state[i, j] = 1
+                    else:
+                        converted_state[i, j] = 2
+            return converted_state
+        def truncate():
+            if self.no_candy_collision_turn_count > self.grid_size[0] * self.grid_size[1] * 2:
+                self.done = True
+            else:
+                self.no_candy_collision_turn_count += 1
         
         update_rewards()
         reward = move_snake_position(action)
         update_state()
+        truncate()    
         
-        return self.state, reward, self.done, False, {}
+        return convert_state_to_observation(), reward, self.done, False, {}
     def render(self, mode='training'):
         def run_in_jupyter():
             try:
