@@ -19,7 +19,7 @@ class Snake:
             total_reward = 0
 
             while not end:
-                self.env.render("human")
+                self.env.render(mode="human", sequential=True)
                 user_pressed_key = getch.getch()
                 if user_pressed_key == 'w':
                     action = 0
@@ -49,7 +49,7 @@ class Snake:
             total_reward = 0
             
             while not end:
-                self.env.render('auto')
+                self.env.render(mode='auto', sequential=False)
                 action = model.predict(state)[0]
                 state, reward, done, truncated, _ = self.env.step(action)
                 total_reward += reward
@@ -66,5 +66,5 @@ class Snake:
     def training(self, model = None, epochs = 10000):
         if model is None:
             raise ValueError("model or model_path must be provided.")
-        model.learn(total_timesteps=epochs)
+        model.learn(total_timesteps=epochs, log_interval=10000)
         return model
