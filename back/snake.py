@@ -19,7 +19,7 @@ class Snake:
             total_reward = 0
 
             while not end:
-                self.env.render(mode="human", sequential=True)
+                self.env.render(mode="human", sequential=False)
                 user_pressed_key = getch.getch()
                 if user_pressed_key == 'w':
                     action = 0

@@ -28,14 +28,22 @@ class SnakeEnv(gym.Env):
         self.snake_position = []
         self.candy_position = []
         
-        """rewards"""
-        self.reward = 0
-        self.edge_collision_reward = -1
-        self.self_collision_reward = -1
-        self.candy_collision_reward = 1
-        self.candy_collision_multiplier = 1.25
+        """ reward parameters ----------------------------------------------------------- """
+        self.reward = 0.0
+        self.edge_collision_reward = -1.0
+        self.self_collision_reward = -1.0
+        self.candy_collision_reward = 1.0
+        self.max_candy_collision_reward = 10.0
+        self.out_of_limit_reward = -1.0
+        
+        self.candy_collision_multiplier = 1.0
         self.no_candy_collision_turn_count = 0
-        self.turn_reward = 0.01
+        
+        self.positive_turn_reward = 0.01
+        self.negative_turn_reward = -0.009
+        self.turn_reward = self.positive_turn_reward
+        """ reward parameters ----------------------------------------------------------- """
+        
         self.candy_collision_detected = False
         self.pervious_candy_snake_distance = None
         
@@ -55,7 +63,7 @@ class SnakeEnv(gym.Env):
         def calculate_distance_interval():
             head_position = self.snake_position[0]
             candy_position = self.candy_position[0]
-            return ((self.max_distance - math.sqrt((head_position[0] - candy_position[0])**2 + (head_position[1] - candy_position[1])**2)) / self.max_distance)
+            return math.sqrt((head_position[0] - candy_position[0])**2 + (head_position[1] - candy_position[1])**2)
         def initialize_candy():
             position_x = random.randint(0, self.grid_size[0] - 1)
             position_y = random.randint(0, self.grid_size[1] - 1)
@@ -90,7 +98,7 @@ class SnakeEnv(gym.Env):
             self.pervious_candy_snake_distance = calculate_distance_interval(self.snake_position[0])
         def calculate_distance_interval(new_head_position):
             candy_position = self.candy_position[0]
-            return ((self.max_distance - math.sqrt((new_head_position[0] - candy_position[0])**2 + (new_head_position[1] - candy_position[1])**2)) / self.max_distance)
+            return math.sqrt((new_head_position[0] - candy_position[0])**2 + (new_head_position[1] - candy_position[1])**2)
         def update_rewards(new_head_position):
             candy_position = self.candy_position[0]
             
@@ -98,7 +106,10 @@ class SnakeEnv(gym.Env):
                 self.turn_reward = 0
             else:
                 current_candy_snake_distance = calculate_distance_interval(new_head_position)
-                self.turn_reward = current_candy_snake_distance - self.pervious_candy_snake_distance
+                if current_candy_snake_distance > self.pervious_candy_snake_distance:
+                    self.turn_reward = self.negative_turn_reward
+                else:
+                    self.turn_reward = self.positive_turn_reward
                 self.pervious_candy_snake_distance = current_candy_snake_distance
         def move_snake_position(action):
             if action == 0:
@@ -126,7 +137,7 @@ class SnakeEnv(gym.Env):
                 self.candy_collision_detected = True
                 self.no_candy_collision_turn_count = 0
                 current_candy_reward = self.candy_collision_reward
-                self.candy_collision_reward *= self.candy_collision_multiplier
+                self.candy_collision_reward = min(self.max_candy_collision_reward, self.candy_collision_reward * self.candy_collision_multiplier)
                 return current_candy_reward
             else:
                 self.snake_position = self.snake_position[:-1]
@@ -157,15 +168,16 @@ class SnakeEnv(gym.Env):
             return converted_state
         def truncate():
             if self.no_candy_collision_turn_count > self.grid_size[0] * self.grid_size[1] * 2:
+                self.reward = self.out_of_limit_reward
                 self.done = True
             else:
                 self.no_candy_collision_turn_count += 1
         
         self.reward = move_snake_position(action)
         update_state()
-        truncate()    
-        
-        return convert_state_to_observation(), self.reward, self.done, False, {}
+        truncate()
+                
+        return convert_state_to_observation(), round(self.reward, 4), self.done, False, {}
     def render(self, mode='training', sequential=True):
         def run_in_jupyter():
             try:
@@ -188,7 +200,7 @@ class SnakeEnv(gym.Env):
                     else:
                         print('S', end=' ')
                 print()
-            print("[Reward: ", self.reward, "]")
+            print("[Reward: ", round(self.reward, 4), "]")
             if not sequential:
                 time.sleep(0.1)
         elif mode == 'auto':
